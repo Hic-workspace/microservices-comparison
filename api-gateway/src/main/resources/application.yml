@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: performance-test-service
+          uri: ${PERFORMANCE_TEST_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/performance/**
+          filters:
+            - RewritePath=/api/performance/(?<segment>.*), /api/performance/$\{segment}
+
+        - id: target-service
+          uri: ${TARGET_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/test/**
+          filters:
+            - RewritePath=/api/test/(?<segment>.*), /api/test/$\{segment}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      routes:
+        - id: performance-test-service
+          uri: http://performance-test-service:8081
+          predicates:
+            - Path=/api/performance/**
+          filters:
+            - RewritePath=/api/performance/(?<segment>.*), /api/performance/$\{segment}
+
+        - id: target-service
+          uri: http://target-service:8082
+          predicates:
+            - Path=/api/test/**
+          filters:
+            - RewritePath=/api/test/(?<segment>.*), /api/test/$\{segment}

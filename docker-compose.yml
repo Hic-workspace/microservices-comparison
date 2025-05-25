@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - comparison-network
+    depends_on:
+      - performance-test-service
+      - target-service
+
+  performance-test-service:
+    build:
+      context: ./performance-test-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - comparison-network
+    depends_on:
+      - target-service
+
+  target-service:
+    build:
+      context: ./target-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - comparison-network
+
+  ui-service:
+    build:
+      context: ./ui-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - comparison-network
+
+networks:
+  comparison-network:
+    driver: bridge
