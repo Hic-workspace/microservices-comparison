@@ -70,7 +70,8 @@ public class PerformanceTestService {
         Flux<?> testFlux = switch (testType) {
             case "quick" -> webClientService.getMultipleConcurrentResponses(requestCount);
             case "delayed" -> Flux.range(0, requestCount).flatMap(i -> webClientService.getDelayedResponse());
-            case "large" -> Flux.range(0, requestCount).flatMap(i -> webClientService.getLargeData());
+            case "large" -> Flux.range(0, requestCount)
+                    .flatMap(i -> webClientService.getLargeData().collectList());
             default -> throw new IllegalArgumentException("Invalid test type");
         };
 
